@@ -53,3 +53,9 @@ For gpt-5-nano, run 1 is right half the time on transcripts where a second run d
 - Gemini's near-constant zero leaves one informative auditor for P1 and P2. The study's within-model claims rest on gpt-5-nano alone.
 - 47 positives; every interval is wide.
 - The 5% FPR threshold cannot be hit exactly with integer scores; each model's threshold is the lowest whose FPR is at most 5%.
+
+## Post hoc: does the second run add information beyond the first run's score?
+
+Not pre-registered; computed 2026-10-19 after the results above. A fair baseline for routing split cases is routing the same number of transcripts by the first run's own uncertainty. For gpt-5-nano, the 36 transcripts whose run-1 score lies nearest the threshold contain 8 of run 1's 43 errors (8 to 11 across random tie-breaks); the 36 split transcripts contain 18. The score band 2 to 7 holds 9 errors in 12 transcripts, and 20 of the 43 errors score 0, where no single-run uncertainty rule reaches them.
+
+Averaging does not show the same gain: AUROC is 0.76 for run 1, 0.82 for run 2, 0.82 for the mean of the two, 0.82 for the maximum. The mean matches the better single run, so the difference between runs is sampling, not aggregation, consistent with METR's finding that extra votes do not help.
