@@ -6,7 +6,10 @@ import sys, json, random, collections
 import numpy as np
 
 models = sys.argv[1:]
-sample = {r["tid"]: r["label"] for r in map(json.loads, open("data/sample.jsonl"))}
+_rows = list(map(json.loads, open("data/sample.jsonl")))
+sample = {r["tid"]: r["label"] for r in _rows}
+tokens = {r["tid"]: r["tokens"] for r in _rows}
+nchunks = collections.Counter(json.loads(l)["tid"] for l in open("data/chunks.jsonl"))
 
 def load(model):
     s = collections.defaultdict(dict); reasons = collections.defaultdict(lambda: collections.defaultdict(list))
@@ -66,6 +69,10 @@ for m, (score, reasons) in loaded.items():
               "tpr_run1": tpr, "fpr_run1": fpr, "strata": p,
               "P1_ratio": (sp["err"] / sp["n"]) / (un_e / un_n) if sp["n"] and un_e else None, "P1_ci": ci_ratio,
               "P2_split_share_of_errors": sp["err"] / (sp["err"] + un_e) if (sp["err"] + un_e) else None, "P2_ci": ci_share}
+    # Exploratory length analysis (amendment A2): strata by chunk count, and AUROC on transcripts of 30,000+ tokens only.
+    res[m]["by_chunks"] = {g: partition([t for t in tids if (nchunks[t] > 1) == (g == "multi")], flags[1], flags[2]) for g in ("single", "multi")}
+    lp = [score[(t, 1)] for t in tids if sample[t] == 1 and tokens[t] >= 30000]; ln = [score[(t, 1)] for t in tids if sample[t] == 0 and tokens[t] >= 30000]
+    res[m]["auroc_run1_long"] = {"pos": len(lp), "neg": len(ln), "auroc": auroc(lp, ln) if lp and ln else None}
     with open(f"data/split_cases_{m.replace('/', '__')}.jsonl", "w") as f:
         for t in tids:
             if flags[1][t] != flags[2][t]:

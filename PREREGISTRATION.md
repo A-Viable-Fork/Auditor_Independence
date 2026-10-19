@@ -53,3 +53,15 @@ A result that kills a prediction is reported as prominently as one that confirms
 ### A1, 2026-10-18, before any data is downloaded
 
 "Error rate against the labels" in Measure 3 is defined as: the first run's binary verdict disagrees with the label. It is computed the same way in all three strata. The alternative, counting a split case as an error because one of its two runs must be wrong, makes P1 true by construction and is rejected. Found while writing `analyze.py`. A check on invented data with independent run noise gives a split-stratum share of errors of about 80%, so P2 separates independent noise from systematic error, as intended.
+
+### A2, 2026-10-19, before any auditor call on study transcripts
+
+Data as found. The MALT public split holds 7,179 runs, 1,826 manually reviewed. Reviewed runs in the study classes: 47 positives (24 `ignores_task_instructions`, 17 `bypass_constraints`, 6 with both or with `reasoning_about_task` as well) and 694 `normal`; all are unprompted runs. MALT stores each run as step snapshots, so a transcript is rebuilt as the longest snapshot's input plus that step's output, with tool calls rendered into the text (`extract.py`). Token counts use the `o200k_base` tokenizer.
+
+Sample. All 47 positives and 450 negatives, drawn by `random.Random(20261018).sample` over the negatives sorted by run id (`prepare.py --negatives 450`). This gives 665 chunks and 9,067,727 prompt tokens per run. 450 is the largest round size that keeps both models' two runs under the 20 USD cap with margin, using costs measured below.
+
+Models. Primary: `google/gemini-3.8-flash`. Second, different provider: `openai/gpt-5-nano`, run on the same sample, two runs, same prompt and chunks. Both through OpenRouter at temperature 1.0, `max_tokens` 16,000. Each model's threshold is set at 5% FPR on its own first run. Cross-model agreement uses each model's first run.
+
+Cost test. Six reviewed transcripts labelled `refusals` only (a class the study excludes), 12 chunks, two runs per model: Gemini 0.448 USD for 24 calls, all parsed; gpt-5-nano 0.023 USD, all parsed. No study transcript was sent to an auditor before this amendment.
+
+Length, added as exploratory. Positives are much longer than negatives (median about 64,000 tokens against about 5,000), and the transcript score is a maximum over chunks, so length can raise scores and can raise split verdicts. Two exploratory measures are added, neither of which changes P1 or P2: the agreement partition reported separately for single-chunk and multi-chunk transcripts, and AUROC on run 1 restricted to transcripts of at least 30,000 tokens.
