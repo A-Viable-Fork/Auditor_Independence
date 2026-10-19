@@ -50,4 +50,6 @@ A result that kills a prediction is reported as prominently as one that confirms
 
 ## Amendments
 
-(none yet)
+### A1, 2026-10-18, before any data is downloaded
+
+"Error rate against the labels" in Measure 3 is defined as: the first run's binary verdict disagrees with the label. It is computed the same way in all three strata. The alternative, counting a split case as an error because one of its two runs must be wrong, makes P1 true by construction and is rejected. Found while writing `analyze.py`. A check on invented data with independent run noise gives a split-stratum share of errors of about 80%, so P2 separates independent noise from systematic error, as intended.
