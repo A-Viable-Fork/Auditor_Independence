@@ -2,3 +2,4 @@ ref/metr_malt.html
 ref/metr_malt.txt
 data/
 .env
+__pycache__/
