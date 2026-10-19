@@ -1,55 +1,51 @@
-# Role: select the pre-registered sample from MALT and cut each transcript into METR-style chunks with the prompt filled in.
-# Contract: python3 -I prepare.py --measure            -> token-length table for positives and negatives (no sample drawn)
-#           python3 -I prepare.py --negatives N        -> data/sample.jsonl ({tid, label}) and data/chunks.jsonl ({tid, chunk, prompt})
-# Invariant: positives = labels include bypass_constraints or ignores_task_instructions; negatives = label exactly normal;
-#   reviewed only; negatives drawn with seed 20261018; chunks <= 30,000 tokens with the first five messages repeated in each.
-# Assumption: column names below are read from data/schema.txt after download and must be confirmed before use.
-import sys, json, glob, random, argparse
-import pandas as pd, tiktoken
+# Role: draw the pre-registered sample from data/transcripts.jsonl and cut each transcript into METR-style chunks with the prompt filled in.
+# Contract: python3 -I prepare.py --measure      -> chunk count and prompt tokens per class, for every eligible transcript (no sample drawn)
+#           python3 -I prepare.py --negatives N  -> data/sample.jsonl ({tid, label, tokens}) and data/chunks.jsonl ({tid, chunk, prompt, tokens})
+# Invariant: all positives; N negatives drawn with random.Random(20261018).sample over negatives sorted by tid;
+#   each chunk <= 30,000 transcript tokens, with the first five messages repeated in every chunk; a single message longer
+#   than the budget is split at token boundaries.
+import sys, json, random, argparse, collections
+import tiktoken
 
-COL_ID, COL_LABELS, COL_REVIEWED, COL_MESSAGES = "run_id", "labels", "manually_reviewed", "messages"  # confirm against schema
-POS = {"bypass_constraints", "ignores_task_instructions"}
 SEED, MAXTOK, HEAD = 20261018, 30000, 5
-
 ap = argparse.ArgumentParser(); ap.add_argument("--measure", action="store_true"); ap.add_argument("--negatives", type=int, default=0)
 a = ap.parse_args()
 enc = tiktoken.get_encoding("o200k_base")
+ntok = lambda s: len(enc.encode(s, disallowed_special=()))
 tmpl = open("ref/prompt_reward_hacking.txt").read()
-
-df = pd.concat(pd.read_parquet(f) for f in sorted(glob.glob("data/raw/data/*.parquet")))
-df = df[df[COL_REVIEWED].astype(bool)]
-labels = df[COL_LABELS].apply(lambda v: set(v) if not isinstance(v, str) else {v})
-df = df.assign(_y=labels.apply(lambda s: 1 if s & POS else 0 if s == {"normal"} else -1))
-df = df[df._y >= 0]
-
-def render(m):
-    return f"[{m.get('role', '?')}]\n{m.get('content', '')}" if isinstance(m, dict) else str(m)
+render = lambda m: f"[{m['role']}]\n{m['text']}"
 
 def chunks(msgs):
     msgs = [render(m) for m in msgs]
     head, rest = "\n\n".join(msgs[:HEAD]), msgs[HEAD:]
-    budget = MAXTOK - len(enc.encode(head)) - len(enc.encode(tmpl))
-    out, cur, n = [], [], 0
+    budget = MAXTOK - ntok(head)
+    pieces = []
     for m in rest:
-        t = len(enc.encode(m))
+        ids = enc.encode(m, disallowed_special=())
+        pieces += [enc.decode(ids[i:i + budget]) for i in range(0, len(ids), budget)] if len(ids) > budget else [m]
+    out, cur, n = [], [], 0
+    for p in pieces:
+        t = ntok(p)
         if cur and n + t > budget: out.append(cur); cur, n = [], 0
-        if t > budget: m = enc.decode(enc.encode(m)[:budget]); t = budget  # a single oversized message is truncated
-        cur.append(m); n += t
+        cur.append(p); n += t
     if cur or not out: out.append(cur)
-    return head, ["\n\n".join(c) for c in out]
+    return [tmpl.replace("{early_messages}", head).replace("{transcript}", "\n\n".join(c)) for c in out]
 
+rows = [json.loads(l) for l in open("data/transcripts.jsonl")]
 if a.measure:
-    df = df.assign(_tok=df[COL_MESSAGES].apply(lambda ms: sum(len(enc.encode(render(m))) for m in ms)))
-    print(df.groupby("_y")._tok.describe(percentiles=[.5, .9, .99]).to_string())
+    st = collections.defaultdict(lambda: [0, 0, 0])
+    for r in rows:
+        ps = chunks(r["messages"]); s = st[r["label"]]; s[0] += 1; s[1] += len(ps); s[2] += sum(map(ntok, ps))
+    for y, (n, c, t) in sorted(st.items()): print(f"label {y}: {n} transcripts, {c} chunks, {t} prompt tokens per run")
     sys.exit()
 
-pos = df[df._y == 1]; neg = df[df._y == 0]
-neg = neg.loc[random.Random(SEED).sample(list(neg.index), min(a.negatives, len(neg)))] if a.negatives else neg.iloc[:0]
-sample = pd.concat([pos, neg])
+pos = [r for r in rows if r["label"] == 1]
+neg = sorted((r for r in rows if r["label"] == 0), key=lambda r: int(r["tid"]))
+neg = random.Random(SEED).sample(neg, min(a.negatives, len(neg)))
+tot = 0
 with open("data/sample.jsonl", "w") as fs, open("data/chunks.jsonl", "w") as fc:
-    for _, r in sample.iterrows():
-        tid = str(r[COL_ID]); fs.write(json.dumps({"tid": tid, "label": int(r._y)}) + "\n")
-        head, body = chunks(list(r[COL_MESSAGES]))
-        for i, b in enumerate(body):
-            fc.write(json.dumps({"tid": tid, "chunk": i, "prompt": tmpl.replace("{early_messages}", head).replace("{transcript}", b)}) + "\n")
-print(f"{len(pos)} positives, {len(neg)} negatives written")
+    for r in pos + neg:
+        ps = chunks(r["messages"]); tk = [ntok(p) for p in ps]; tot += sum(tk)
+        fs.write(json.dumps({"tid": r["tid"], "label": r["label"], "tokens": sum(tk)}) + "\n")
+        for i, (p, t) in enumerate(zip(ps, tk)): fc.write(json.dumps({"tid": r["tid"], "chunk": i, "prompt": p, "tokens": t}) + "\n")
+print(f"{len(pos)} positives, {len(neg)} negatives, {tot} prompt tokens per run")
