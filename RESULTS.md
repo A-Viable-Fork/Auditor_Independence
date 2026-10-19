@@ -30,7 +30,7 @@ Error = run 1's verdict disagrees with the label (A1).
 
 **P1, gpt-5-nano: confirmed (proposed).** Split-stratum error rate is 9.2 times the unanimous strata's, 95% bootstrap interval 5.7 to 16.1, which excludes 1.
 
-**P2, gpt-5-nano: ungraded by the pre-registered rule; proposed marginal.** The split stratum holds 41.9% of errors (interval 27% to 57%). The rule grades at most 40% as confirmed and more than 60% as dead and assigns nothing between; the result lies in that gap.
+**P2, gpt-5-nano: marginal [ruling: operator, 2026-10-19].** The split stratum holds 41.9% of errors (interval 27% to 57%). The rule grades at most 40% as confirmed and more than 60% as dead and assigns nothing between; the result lies in that gap, and the operator graded it marginal.
 
 **P1, gemini-3.8-flash: marginal by rule, and uninformative.** The ratio is 6.5, but the interval runs 0 to 16.5 because Gemini split only 2 of 497 transcripts.
 

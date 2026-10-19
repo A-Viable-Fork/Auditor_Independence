@@ -1,0 +1,21 @@
+{
+ "tag": "BOTH-SAY-CLEAN",
+ "posthoc": true,
+ "definition": "both reasons conclude no cheating or exploitation; the split comes from score alone",
+ "cases": [
+  2,
+  3,
+  5,
+  10,
+  11,
+  12,
+  15,
+  16,
+  23,
+  27,
+  28,
+  30,
+  32,
+  35
+ ]
+}
