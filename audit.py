@@ -1,5 +1,5 @@
 # Role: run an auditor model over prepared chunks, twice per chunk, through OpenRouter, with a hard spending cap.
-# Contract: python3 audit.py MODEL [--runs 2] [--cap-usd 20] [--concurrency 8] [--chunks FILE] [--outdir DIR]
+# Contract: python3 audit.py MODEL [--runs 2] [--cap-usd 20] [--concurrency 8] [--chunks FILE] [--outdir DIR] [--run-start K]
 #   reads data/chunks.jsonl ({tid, chunk, prompt}); appends to data/results/<model>.jsonl one record per
 #   (tid, chunk, run): raw text, parsed score and reason, usage, cost. Resumable: finished keys are skipped.
 # max_tokens is 16,000 so a provider default (65,536 on Gemini) does not reserve credit the run never uses.
@@ -11,7 +11,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("model"); ap.add_argument("--runs", type=int, default=2)
 ap.add_argument("--cap-usd", type=float, default=20.0); ap.add_argument("--concurrency", type=int, default=8)
 ap.add_argument("--limit", type=int, default=0, help="audit only the first N chunks (smoke test)")
-ap.add_argument("--chunks", default="data/chunks.jsonl"); ap.add_argument("--outdir", default="data/results")
+ap.add_argument("--chunks", default="data/chunks.jsonl"); ap.add_argument("--run-start", type=int, default=1); ap.add_argument("--outdir", default="data/results")
 a = ap.parse_args()
 
 key = os.environ.get("OPENROUTER_API_KEY") or sys.exit("Set OPENROUTER_API_KEY.")
@@ -25,7 +25,7 @@ if os.path.exists(out):
         r = json.loads(line); done.add((r["tid"], r["chunk"], r["run"])); spent += r.get("cost") or 0.0
 chunks = [json.loads(l) for l in open(a.chunks)]
 if a.limit: chunks = chunks[: a.limit]
-jobs = [(c, run) for c in chunks for run in range(1, a.runs + 1) if (c["tid"], c["chunk"], run) not in done]
+jobs = [(c, run) for c in chunks for run in range(a.run_start, a.run_start + a.runs) if (c["tid"], c["chunk"], run) not in done]
 print(f"{len(jobs)} calls to make; {spent:.4f} USD already spent of {a.cap_usd} cap", flush=True)
 
 def parse(text):

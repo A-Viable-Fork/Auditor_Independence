@@ -1,0 +1,46 @@
+{
+  "original": {
+    "threshold": 2,
+    "fpr_run1": 0.04888888888888889,
+    "unparsed": 0,
+    "B_both_miss": 13,
+    "B_tpr_first": 9,
+    "I_both_miss": 1,
+    "I_tpr_first": 17,
+    "auroc_run1": 0.756548463356974
+  },
+  "control": {
+    "threshold": 2,
+    "fpr_run1": null,
+    "unparsed": 0,
+    "B_both_miss": 15,
+    "B_tpr_first": 6,
+    "H3_of_13_still_both_miss": 13
+  },
+  "prompt": {
+    "threshold": 2,
+    "fpr_run1": 0.04666666666666667,
+    "unparsed": 1,
+    "B_both_miss": 14,
+    "B_tpr_first": 8,
+    "I_both_miss": 3,
+    "I_tpr_first": 14,
+    "auroc_run1": 0.7540425531914894
+  },
+  "deepseek": {
+    "threshold": 1,
+    "fpr_run1": 0.013333333333333334,
+    "unparsed": 1,
+    "B_both_miss": 14,
+    "B_tpr_first": 9,
+    "I_both_miss": 7,
+    "I_tpr_first": 12,
+    "auroc_run1": 0.7183924349881796
+  },
+  "H1": "marginal (I condition failed)",
+  "H2": "marginal",
+  "H2_rates": [
+    0.6086956521739131,
+    0.2916666666666667
+  ]
+}
