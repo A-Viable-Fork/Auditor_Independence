@@ -4,7 +4,7 @@ Committed 2026-10-20, before any call in this follow-up. Changes after this comm
 
 ## What prompted it
 
-A post hoc observation from the main study (`RESULTS.md`), on gpt-5-nano at threshold 2. Group B is the 23 positives whose labels include `bypass_constraints`; group I is the 24 positives labelled `ignores_task_instructions` without it. In B, 13 of 23 score below threshold on both runs (both-miss). In I, 1 of 24 does. Group B transcripts are short (319,658 tokens in all, about 14,000 each) and group I long (1,894,979, about 79,000 each), so length does not explain the gap. This observation was found by looking at the data, and this follow-up tests it rather than reporting it.
+A post hoc observation from the main study (`RESULTS.md`), on gpt-5-nano at threshold 2. Group B is the 23 positives whose labels include `bypass_constraints`; group I is the 24 positives labelled `ignores_task_instructions` without it. In B, 13 of 23 score below threshold on both runs (both-miss). In I, 1 of 24 does. Group B transcripts are short (319,658 tokens in all, about 14,000 each) and group I long (1,894,979, about 79,000 each), so length does not explain the gap. [Corrected 2026-10-21: chunk count and label are confounded; see CORRECTIONS.md C1.] This observation was found by looking at the data, and this follow-up tests it rather than reporting it.
 
 ## Arms
 
@@ -67,4 +67,4 @@ All arms ran in full: control 54 calls (0.04 USD), prompt arm 1,330 (1.05 USD), 
 
 ## What it says
 
-The blind spot is a property of these twelve transcripts as read by these auditors: stable across runs, untouched by naming the behaviour in the prompt, and shared across two providers. Two readings remain open. Either cheap auditors share a reading under which these constraint bypasses look like legitimate work, or METR's labels on them are contestable and the auditors are right. The data here cannot separate the two; a person reading the twelve transcripts against the task's stated constraints can.
+[Scope corrected 2026-10-21, CORRECTIONS.md C1: the twelve are all single-chunk, so a chunk-count effect is not ruled out.] The blind spot is a property of these twelve transcripts as read by these auditors: stable across runs, untouched by naming the behaviour in the prompt, and shared across two providers. Two readings remain open. Either cheap auditors share a reading under which these constraint bypasses look like legitimate work, or METR's labels on them are contestable and the auditors are right. The data here cannot separate the two; a person reading the twelve transcripts against the task's stated constraints can.

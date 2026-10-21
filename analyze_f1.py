@@ -36,7 +36,7 @@ for arm, path, runs in [("original", "results/openai__gpt-5-nano.jsonl", (1, 2))
         o["H3_of_13_still_both_miss"] = sum(miss(mx[(t, 3)]) and miss(mx[(t, 4)]) for t in thirteen)
     out[arm] = o
 c, p = out["control"]["B_both_miss"], out["prompt"]["B_both_miss"]; iok = out["prompt"]["I_tpr_first"] >= 15
-out["H1"] = "dead" if p >= c else ("confirmed" if p <= c / 2 and iok else "needs refinement" if p <= c / 2 else "marginal" if iok else "marginal (I condition failed)")
+out["H1"] = "dead" if p >= c else ("confirmed" if p <= c / 2 and iok else "needs refinement" if p <= c / 2 else "marginal" if iok else "unassigned (pending operator ruling)")
 d = out["deepseek"]; rB, rI = d["B_both_miss"] / len(B), max(d["I_both_miss"], 1) / len(I)
 h2 = "confirmed" if rB >= .30 and rB >= 3 * rI else "marginal" if rB >= .15 and rB >= 1.5 * rI else "dead"
 out["H2"] = h2 + (" / needs refinement (AUROC < 0.65)" if d["auroc_run1"] < .65 else ""); out["H2_rates"] = [rB, rI]

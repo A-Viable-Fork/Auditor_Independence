@@ -40,13 +40,13 @@ Error = run 1's verdict disagrees with the label (A1).
 
 ## Exploratory
 
-Cross-model, run 1 of each model at its own threshold: 42 transcripts on which the models disagree hold 19 of 39 errors (49%, interval 34% to 64%), against 20 errors among 455 agreed transcripts.
+Cross-model, run 1 of each model at its own threshold: 42 transcripts on which the models disagree hold 19 of 39 errors (49%, interval 34% to 64%), against 20 errors among 455 agreed transcripts. [Corrected 2026-10-21: the 39 are Gemini's errors; see CORRECTIONS.md C3.]
 
 Length: gpt-5-nano's AUROC holds on long transcripts (0.75 against 0.76 overall), so length does not carry its separation. Its splits come with length: 29 of its 36 split transcripts are multi-chunk, against 98 of 497 transcripts overall.
 
 ## What this says
 
-For gpt-5-nano, run 1 is right half the time on transcripts where a second run disagrees, a coin flip, and right 95% of the time where the runs agree. Rerunning and routing the 7% of transcripts that split would send 42% of its errors to a second look. The other 58% are errors both runs share, which no amount of resampling the same model reaches. Disagreement between the two models locates more (49% of errors in 8.5% of transcripts), consistent with errors that differ by model more than by sample.
+For gpt-5-nano, run 1 is right half the time on transcripts where a second run disagrees, a coin flip, and right 95% of the time where the runs agree. Rerunning and routing the 7% of transcripts that split would send 42% of its errors to a second look. The other 58% are errors both runs share, which no amount of resampling the same model reaches [corrected 2026-10-21, CORRECTIONS.md C2]. Disagreement between the two models locates more (49% of errors in 8.5% of transcripts [corrected 2026-10-21, CORRECTIONS.md C3]), consistent with errors that differ by model more than by sample.
 
 ## Limits found in the run
 
